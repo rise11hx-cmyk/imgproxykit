@@ -13,10 +13,17 @@ Usage::
 from __future__ import annotations
 
 from importlib import import_module
-from typing import Annotated, Any, get_args, get_origin, get_type_hints
+from typing import (
+    Annotated,
+    Any,
+    get_args,
+    get_origin,
+    get_type_hints,
+    override,
+)
 
 from docutils import nodes
-from docutils.statemachine import ViewList
+from docutils.statemachine import StringList
 from sphinx.util.docutils import SphinxDirective
 
 _TABLE_HEADER = (
@@ -61,9 +68,9 @@ def field_rows(typed_dict: Any) -> list[tuple[str, str, str]]:
     ]
 
 
-def _table(rows: list[tuple[str, str, str]]) -> ViewList:
+def _table(rows: list[tuple[str, str, str]]) -> StringList:
     """Turn the rows into a ``list-table`` body."""
-    lines = ViewList()
+    lines: StringList = StringList()
     for header_line in _TABLE_HEADER:
         lines.append(header_line, source='')
     for field, value_type, option_role in rows:
@@ -81,6 +88,7 @@ class TypedDictFields(SphinxDirective):
     final_argument_whitespace = False
     has_content = False
 
+    @override
     def run(self) -> list[nodes.Node]:
         """Render the table for the class named in the directive argument."""
         rows = field_rows(_import_target(self.arguments[0]))
