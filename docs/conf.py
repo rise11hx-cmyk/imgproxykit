@@ -71,6 +71,7 @@ extensions = [
     'sphinx_iconify',
     'sphinx_design',
     'show_output',
+    'typed_dict_fields',
 ]
 
 # If true, Sphinx will warn about all references

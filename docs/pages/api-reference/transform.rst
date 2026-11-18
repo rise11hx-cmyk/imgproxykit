@@ -10,6 +10,8 @@ Scalar keyword arguments
 .. autoclass:: imgproxykit.transform.KeywordOptions
    :members:
 
+.. typed-dict-fields:: imgproxykit.transform.KeywordOptions
+
 Keyword option resolver
 -----------------------
 
