@@ -12,6 +12,8 @@ but with a deprecation period.
 
 ### Features
 
+- Support Python 3.12 `type` aliases, alias chains, and generic aliases
+  in dataclass variant declarations, #179
 - `KeywordOptionResolver.from_kwarg()` now preserves the input value type
   in its `ScalarOption` return annotation, #138
 
