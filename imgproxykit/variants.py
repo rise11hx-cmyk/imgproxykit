@@ -3,23 +3,16 @@ from typing import (
     TYPE_CHECKING,
     Annotated,
     Any,
-    TypeAliasType,
     get_args,
     get_origin,
     get_type_hints,
 )
 
+from imgproxykit.internal.typing import unwrap_type_alias
 from imgproxykit.transform import Transform
 
 if TYPE_CHECKING:
     from _typeshed import DataclassInstance
-
-
-def _resolve_type_alias(annotation: Any) -> Any:
-    """Replace a PEP 695 ``type`` alias with the type it stands for."""
-    while isinstance(annotation, TypeAliasType):
-        annotation = annotation.__value__
-    return annotation
 
 
 @dataclass(frozen=True, slots=True, kw_only=True)
@@ -66,7 +59,6 @@ class DataclassVariantsResolver:
                     f'Field {field_name!r} of {model!r} uses `InitVar`. '
                     'Variant declarations do not support init-only fields',
                 )
-            hints[field_name] = _resolve_type_alias(annotation)
         return hints
 
     def _resolve_field(self, field: Field[Any], annotation: Any) -> Transform:
@@ -79,6 +71,7 @@ class DataclassVariantsResolver:
                 'Variant fields must accept a constructor argument',
             )
 
+        annotation = unwrap_type_alias(annotation)
         arguments = get_args(annotation)
         if get_origin(annotation) is not Annotated or arguments[0] is not str:
             raise TypeError(
@@ -91,10 +84,9 @@ class DataclassVariantsResolver:
             for metadata in arguments[1:]
             if isinstance(metadata, Transform)
         ]
-        transform_count = len(transforms)
-        if transform_count != 1:
+        if len(transforms) != 1:
             raise TypeError(
                 f'Field {field_name!r} of {model!r} must declare exactly one '
-                f'`Transform` in its metadata, got {transform_count}',
+                f'`Transform` in its metadata, got {len(transforms)}',
             )
         return transforms[0]
