@@ -113,6 +113,29 @@ annotations do not check server capabilities. See the
 `imgproxy configuration documentation
 <https://docs.imgproxy.net/latest/configuration/options>`__ for server settings.
 
+Value validation
+----------------
+
+Type annotations describe the Python types an option accepts. They do not
+bound the values imgproxy will process: the accepted range belongs to the
+server, not to the client. A quality of ``200`` is an ``int``, so it passes
+the annotations and ``imgproxykit`` serializes it without raising:
+
+.. literalinclude:: /examples/options/server_validation.py
+   :language: python
+   :show-output:
+
+.. code-annotations::
+
+   1. ``200`` passes the type annotations. imgproxy documents quality in
+      the ``0``–``100`` range and answers this path with an error response.
+
+The value is encoded into the path, so a rejected value surfaces as an
+imgproxy error response when the image is requested, not as an exception
+while you build the URL. Check the range and format each option accepts in
+the imgproxy documentation, or validate the values in your own code before
+calling ``Client.url``.
+
 Next steps
 ----------
 
