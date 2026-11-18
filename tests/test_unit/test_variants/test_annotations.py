@@ -11,6 +11,10 @@ _SMALL: Final = Transform(width=320)
 _LARGE: Final = Transform(width=1280)
 _Thumbnail = Annotated[str, _SMALL]
 
+type _TypeStatementThumbnail = Annotated[str, _SMALL]
+type _NestedTypeStatementThumbnail = _TypeStatementThumbnail
+type _InvalidTypeStatementThumbnail = Annotated[int, _SMALL]
+
 
 @dataclass
 class _AliasVariants:
@@ -19,11 +23,46 @@ class _AliasVariants:
     small: '_Thumbnail'
 
 
+@dataclass
+class _TypeStatementVariants:
+    """Declare fields with PEP 695 ``type`` aliases."""
+
+    small: _TypeStatementThumbnail
+    large: _NestedTypeStatementThumbnail
+
+
+@dataclass
+class _InvalidTypeStatementVariants:
+    """Declare an invalid field through a PEP 695 ``type`` alias."""
+
+    small: _InvalidTypeStatementThumbnail
+
+
 def test_alias_and_forward_reference() -> None:
     """Resolve a string annotation referring to a module-level type alias."""
     assert DataclassVariantsResolver(model=_AliasVariants)() == {
         'small': _SMALL
     }
+
+
+def test_type_statement_alias() -> None:
+    """Resolve PEP 695 ``type`` aliases, including an alias of an alias."""
+    assert DataclassVariantsResolver(model=_TypeStatementVariants)() == {
+        'small': _SMALL,
+        'large': _SMALL,
+    }
+
+
+def test_invalid_type_statement_alias() -> None:
+    """Validate the resolved type rather than accepting any alias."""
+    with pytest.raises(
+        TypeError,
+        match=escape('must be annotated with `Annotated[str, Transform(...)]`'),
+    ) as exc_info:
+        DataclassVariantsResolver(model=_InvalidTypeStatementVariants)()
+
+    assert "Field 'small'" in str(exc_info.value)
+    assert 'Annotated[int' in str(exc_info.value)
 
 
 @pytest.mark.parametrize(

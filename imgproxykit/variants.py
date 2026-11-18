@@ -3,6 +3,7 @@ from typing import (
     TYPE_CHECKING,
     Annotated,
     Any,
+    TypeAliasType,
     get_args,
     get_origin,
     get_type_hints,
@@ -12,6 +13,13 @@ from imgproxykit.transform import Transform
 
 if TYPE_CHECKING:
     from _typeshed import DataclassInstance
+
+
+def _resolve_type_alias(annotation: Any) -> Any:
+    """Replace a PEP 695 ``type`` alias with the type it stands for."""
+    while isinstance(annotation, TypeAliasType):
+        annotation = annotation.__value__
+    return annotation
 
 
 @dataclass(frozen=True, slots=True, kw_only=True)
@@ -58,6 +66,7 @@ class DataclassVariantsResolver:
                     f'Field {field_name!r} of {model!r} uses `InitVar`. '
                     'Variant declarations do not support init-only fields',
                 )
+            hints[field_name] = _resolve_type_alias(annotation)
         return hints
 
     def _resolve_field(self, field: Field[Any], annotation: Any) -> Transform:
