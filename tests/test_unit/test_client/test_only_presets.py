@@ -24,7 +24,7 @@ def test_one_preset_is_one_name_segment() -> None:
     )
 
 
-def test_presets_from_several_options_share_one_segment() -> None:
+def test_several_presets_share_one_segment() -> None:
     """Keep the order of the names when each comes from its own option."""
     client = Client('https://example.com', only_presets=True)
     transform = Transform(Preset('thumbnail'), Preset('watermarked'))
@@ -72,7 +72,7 @@ def test_signing_covers_the_presets_only_path(credentials: Credentials) -> None:
     )
 
 
-def test_another_option_is_rejected_before_encoding() -> None:
+def test_other_option_is_rejected() -> None:
     """Refuse a transform the server would apply besides the presets."""
     client = Client('https://example.com', only_presets=True)
 

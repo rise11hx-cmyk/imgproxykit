@@ -84,19 +84,17 @@ class PathSerializer:
                 Omit or pass ``None`` to add no processing options.
         """
         options: tuple[str, ...] = ()
-        if transform is not None:
-            options = (
-                self._presets_segment(transform)
-                if self._only_presets
-                else tuple(
-                    self._serialize_segment(
-                        (option.short_name or option.name)
-                        if self._use_short_options
-                        else option.name,
-                        option.arguments,
-                    )
-                    for option in transform.options
+        if transform is not None and self._only_presets:
+            options = self._presets_segment(transform)
+        elif transform is not None:
+            options = tuple(
+                self._serialize_segment(
+                    (option.short_name or option.name)
+                    if self._use_short_options
+                    else option.name,
+                    option.arguments,
                 )
+                for option in transform.options
             )
         return '/'.join(('', *options, self._source_serializer(source)))
 
