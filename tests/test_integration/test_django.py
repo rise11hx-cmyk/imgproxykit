@@ -32,10 +32,10 @@ def test_image_page(client: Client) -> None:
 
 def test_only_presets_setting_reaches_the_client() -> None:
     """Pass IMGPROXYKIT's client option through, for a presets-only server."""
-    config = settings.IMGPROXYKIT  # type: ignore[attr-defined]
+    config = settings.IMGPROXYKIT
     client_config = {**config['client'], 'only_presets': True}
 
-    with override_settings(IMGPROXYKIT={**config, 'client': client_config}):  # type: ignore[attr-defined]
+    with override_settings(IMGPROXYKIT={**config, 'client': client_config}):
         url = get_client().url(
             'https://example.com/photo.jpg',
             transform=Transform(Preset('thumbnail', 'watermarked')),
