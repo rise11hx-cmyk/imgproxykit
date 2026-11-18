@@ -71,6 +71,33 @@ to use percent-encoding with imgproxy's ``/plain/`` marker:
    2. Pass the original source URI. The client percent-encodes it for you;
       do not encode it before passing it to ``url()``.
 
+Serve presets only
+------------------
+
+A server configured with ``IMGPROXY_ONLY_PRESETS=true`` reads preset names
+where it reads processing options, without the ``preset`` option name, and
+rejects any other processing option. Set ``only_presets=True`` to generate
+those URLs:
+
+.. code-block:: python
+
+   from imgproxykit import Client, Transform
+   from imgproxykit.options import Preset
+
+   client = Client('http://localhost:8080', only_presets=True)
+   thumbnail_url = client.url(
+       'https://picsum.photos/200/300',
+       transform=Transform(Preset('thumbnail', 'watermarked')),
+   )
+
+The names keep their order in one segment, as ``thumbnail:watermarked``,
+separated by the client's ``argument_separator``. A transform that holds an
+option other than a preset raises :exc:`TypeError` before the URL is built,
+because the server would not apply it. Signing covers that segment like any
+other. See `imgproxy presets
+<https://docs.imgproxy.net/usage/presets#only-presets>`__ for the server
+setting.
+
 Sign URLs
 ---------
 

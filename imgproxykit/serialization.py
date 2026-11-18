@@ -1,6 +1,7 @@
 from collections.abc import Callable
 
 from imgproxykit.internal.encoding import encode_base64, encode_plain
+from imgproxykit.options.preset import Preset
 from imgproxykit.transform import Transform
 from imgproxykit.types import Argument, SourceEncoding
 
@@ -24,6 +25,7 @@ class PathSerializer:
 
     __slots__ = (
         '_argument_separator',
+        '_only_presets',
         '_source_serializer',
         '_use_short_options',
     )
@@ -34,6 +36,7 @@ class PathSerializer:
         argument_separator: str,
         use_short_options: bool,
         source_encoding: SourceEncoding,
+        only_presets: bool = False,
     ) -> None:
         """
         Configure processing options and select the source URL serializer.
@@ -49,8 +52,13 @@ class PathSerializer:
                 <https://docs.imgproxy.net/usage/processing#source-url>`_.
             use_short_options: Use short aliases when available,
                 otherwise full names.
+            only_presets: Write preset names without the ``preset`` option
+                name, for a server configured with ``IMGPROXY_ONLY_PRESETS``.
+                See `imgproxy presets
+                <https://docs.imgproxy.net/usage/presets#only-presets>`__.
         """
         self._argument_separator = argument_separator
+        self._only_presets = only_presets
         self._use_short_options = use_short_options
         self._source_serializer = self._resolve_source_serializer(
             source_encoding,
@@ -77,16 +85,45 @@ class PathSerializer:
         """
         options: tuple[str, ...] = ()
         if transform is not None:
-            options = tuple(
-                self._serialize_segment(
-                    (option.short_name or option.name)
-                    if self._use_short_options
-                    else option.name,
-                    option.arguments,
+            options = (
+                self._presets_segment(transform)
+                if self._only_presets
+                else tuple(
+                    self._serialize_segment(
+                        (option.short_name or option.name)
+                        if self._use_short_options
+                        else option.name,
+                        option.arguments,
+                    )
+                    for option in transform.options
                 )
-                for option in transform.options
             )
         return '/'.join(('', *options, self._source_serializer(source)))
+
+    def _presets_segment(self, transform: Transform) -> tuple[str, ...]:
+        """
+        Combine the transform's preset names into one segment.
+
+        A server with ``IMGPROXY_ONLY_PRESETS`` reads the names where it reads
+        processing options, without the ``preset`` option name, and rejects any
+        other option. Refuse those before encoding, so the error names it.
+
+        Returns:
+            One segment, or none when the transform holds no preset.
+
+        Raises:
+            TypeError: If the transform holds an option other than a preset.
+        """
+        names: list[str] = []
+        for option in transform.options:
+            if not isinstance(option, Preset):
+                raise TypeError(
+                    'only_presets accepts Preset options only; the transform'
+                    f' also has {type(option).__name__} ({option.name}), which'
+                    ' the server would not apply.',
+                )
+            names.extend(option.names)
+        return (self._argument_separator.join(names),) if names else ()
 
     def _resolve_source_serializer(
         self,

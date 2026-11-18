@@ -29,6 +29,7 @@ class ClientSettings(enum.StrEnum):
     unsigned_marker = 'unsigned_marker'
     argument_separator = 'argument_separator'
     use_short_options = 'use_short_options'
+    only_presets = 'only_presets'
     source_encoding = 'source_encoding'
 
 
@@ -60,6 +61,8 @@ class ClientSettingsDict(TypedDict, total=False, closed=True):
     argument_separator: str
     #: Use short processing option aliases when available.
     use_short_options: bool
+    #: Write preset names without the `preset` option name.
+    only_presets: bool
     #: Source URL representation using Base64 or percent-encoded plain mode.
     source_encoding: SourceEncoding
 
